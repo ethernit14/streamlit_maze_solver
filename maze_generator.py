@@ -4,7 +4,17 @@ from matplotlib.colors import ListedColormap
 import random
 from collections import deque
 
-def generate_maze(width=20, height=20, seed=None):
+def generate_maze(width=20, height=20, seed=None, multiple_solutions=True, extra_paths_ratio=0.15):
+    """
+    Generate a maze with optional multiple solution paths.
+    
+    Args:
+        width: Width of the maze
+        height: Height of the maze
+        seed: Random seed for reproducibility
+        multiple_solutions: If True, adds extra paths to create multiple solutions
+        extra_paths_ratio: Ratio of walls to remove (0.1 = 10% of walls become paths)
+    """
     if seed is not None:
         random.seed(seed)
         np.random.seed(seed)
@@ -56,6 +66,32 @@ def generate_maze(width=20, height=20, seed=None):
             # Force a connection if needed
             if end[1] > 0:
                 maze[end[1] - 1, end[0]] = 0
+    
+    # Add multiple solution paths by removing some walls
+    if multiple_solutions:
+        # Find all walls that can be safely removed
+        removable_walls = []
+        
+        for y in range(1, height - 1):
+            for x in range(1, width - 1):
+                if maze[y, x] == 1:  # It's a wall
+                    # Check if this wall has paths on at least 2 sides
+                    path_neighbors = 0
+                    for dy, dx in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+                        ny, nx = y + dy, x + dx
+                        if 0 <= ny < height and 0 <= nx < width and maze[ny, nx] == 0:
+                            path_neighbors += 1
+                    
+                    # If wall has 2 or more path neighbors, it can create alternative routes
+                    if path_neighbors >= 2:
+                        removable_walls.append((y, x))
+        
+        # Remove a percentage of these walls to create alternative paths
+        num_to_remove = int(len(removable_walls) * extra_paths_ratio)
+        walls_to_remove = random.sample(removable_walls, min(num_to_remove, len(removable_walls)))
+        
+        for y, x in walls_to_remove:
+            maze[y, x] = 0
     
     return maze, start, end
 
