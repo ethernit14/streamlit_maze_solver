@@ -1,8 +1,6 @@
 import heapq
 import time
 
-# filepath: /Users/ethernit/Desktop/Projects/github/maze_solver/maze_solverastar.py
-
 def astar_solve(maze, start, end, return_visited=False):
     """Solve maze using A* algorithm
     
